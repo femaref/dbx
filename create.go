@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"database/sql/driver"
 )
 
 
@@ -45,20 +46,27 @@ func CreateWithDB(db DBAccess, i interface{}) (interface{}, error) {
 		}
 		isNullValue := reflect.DeepEqual(valField.Interface(), reflect.Zero(f.Type).Interface())
 		isConvertibleToByteSlice := f.Type.ConvertibleTo(byteSlice)
+		implementsValuer := f.Type.Implements(valuer)
 		// only drop the id column and use it as target when it's the null value
 		if column_name == "id" && isNullValue {
 			id_val = val.Field(i)
 			continue
 		}
+		if implementsValuer {
+		    valuer := valField.Interface().(driver.Valuer)
+		    x, _ := valuer.Value()
+		    if x == nil {
+		        continue
+		    }
+		}
 		
 		columns = append(columns, column_name)
-		
-		if isConvertibleToByteSlice {
+		if !implementsValuer && isConvertibleToByteSlice {
 		    v := val.Field(i).Convert(reflect.TypeOf(""))
 		    fields = append(fields, v.Interface())
 		    continue
 		}
-
+		
 		fields = append(fields, val.Field(i).Interface())
 	}
 

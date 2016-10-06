@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"database/sql/driver"
 )
 
 func Update(target interface{}, newValues interface{}) (error) {
@@ -46,10 +47,18 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) (error
 		}
 		isNullValue := reflect.DeepEqual(valNewField.Interface(), reflect.Zero(f.Type).Interface())
 		isConvertibleToByteSlice := f.Type.ConvertibleTo(byteSlice)
+		implementsValuer := f.Type.Implements(valuer)
 		// only drop the id column and use it as target when it's the null value
 		if column_name == "id" {
 			id_val = valTargetField
 			continue
+		}
+		
+		if implementsValuer {
+		    valuer := valNewField.Interface().(driver.Valuer)
+		    if x, _ := valuer.Value(); x == nil {
+		        continue
+		    }
 		}
 		
 		if isNullValue {

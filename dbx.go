@@ -3,6 +3,7 @@ package dbx
 import (
 	"errors"
 	"fmt"
+	"database/sql/driver"
 	"github.com/chuckpreslar/inflect"
 	"github.com/jmoiron/sqlx"
 	"reflect"
@@ -88,6 +89,7 @@ var selectString = `SELECT * FROM %s WHERE "id" = $1`
 var updateString = `UPDATE %s SET %s WHERE "id" = $1`
 
 var byteSlice reflect.Type = reflect.SliceOf(reflect.TypeOf(byte(0)))
+var valuer reflect.Type = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
 
 func assertPointerToStruct(i interface{}) (bool) {
 	t := reflect.TypeOf(i)
