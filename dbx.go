@@ -32,6 +32,10 @@ func Open() (*sqlx.DB, error) {
 	return sqlx.Connect(dialect, connectionString)
 }
 
+func MustConnect() *sqlx.DB {
+    return sqlx.MustConnect(dialect, connectionString)
+}
+
 type Tabler interface {
 	TableName() string
 }
