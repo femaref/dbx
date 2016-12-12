@@ -86,11 +86,11 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) (error
 	var field_updaters []string
 	
 	for idx, column_name := range columns {
-	    single := fmt.Sprintf("%s = %s", column_name, placeholders[idx])
+	    single := fmt.Sprintf("%s = %s", QuoteIdentifier(column_name), placeholders[idx])
 	    field_updaters = append(field_updaters, single)
 	}
 	
-	qs := fmt.Sprintf(updateString, table_name, strings.Join(field_updaters, ", "))
+	qs := fmt.Sprintf(updateString, QuoteIdentifier(table_name), strings.Join(field_updaters, ", "))
 	stmt, err := db.Prepare(qs)
 
 	if err != nil {

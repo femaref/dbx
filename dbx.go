@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+var QuoteIdentifier func(string)string = func(s string) string {
+    return s
+}
+
 var (
     dialect string
 	connectionString string

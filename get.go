@@ -25,7 +25,7 @@ func GetWithDB(db DBAccess, target interface{}, id interface{}) (error) {
 	
 
 	
-	stmt, _ := db.Preparex(fmt.Sprintf(selectString, tableName(target, t)))
+	stmt, _ := db.Preparex(fmt.Sprintf(selectString, QuoteIdentifier(tableName(target, t))))
     
     return stmt.Get(target, id)
 }

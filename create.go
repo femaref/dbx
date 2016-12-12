@@ -70,6 +70,9 @@ func CreateWithDB(db DBAccess, i interface{}) (interface{}, error) {
 		fields = append(fields, val.Field(i).Interface())
 	}
 
+    for i, _ := range columns {
+        columns[i] = QuoteIdentifier(columns[i])
+    }
 	rendered_columns := strings.Join(columns, ", ")
 	placeholders := strings.Join(generatePlaceholders(len(columns), 0), ", ")
 
@@ -77,7 +80,7 @@ func CreateWithDB(db DBAccess, i interface{}) (interface{}, error) {
     if id_val.IsValid() {
         insert_query = insertStringWithID
     }
-    prepared := fmt.Sprintf(insert_query, table_name, rendered_columns, placeholders)
+    prepared := fmt.Sprintf(insert_query, QuoteIdentifier(table_name), rendered_columns, placeholders)
 
 	stmt, err := db.Preparex(prepared)
 
