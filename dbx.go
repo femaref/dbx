@@ -20,6 +20,8 @@ var (
 	isConfigured     bool
 
 	NotConfiguredError error = errors.New("Database not configured")
+	
+    instance *sqlx.DB
 )
 
 func Configure(dialectx, connection string) {
@@ -32,8 +34,18 @@ func Open() (*sqlx.DB, error) {
 	if !isConfigured {
 		panic(NotConfiguredError)
 	}
-
-	return sqlx.Connect(dialect, connectionString)
+	
+	if instance == nil {
+    	db, err := sqlx.Connect(dialect, connectionString)
+    	
+    	if err != nil {
+    	    return nil, err
+    	}
+    	
+    	instance = db
+	}
+	
+	return instance, nil
 }
 
 func MustConnect() *sqlx.DB {
