@@ -35,6 +35,14 @@ func Open() (*sqlx.DB, error) {
 		panic(NotConfiguredError)
 	}
 	
+	if instance != nil {
+	    err := instance.Ping()
+	    if err != nil && err.Error() == `sql: database is closed` { 
+	        instance = nil
+	    }
+	
+	}
+	
 	if instance == nil {
     	db, err := sqlx.Connect(dialect, connectionString)
     	
