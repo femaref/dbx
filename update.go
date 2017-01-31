@@ -13,7 +13,6 @@ func Update(target interface{}, newValues interface{}) (error) {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 	
 	return UpdateWithDB(db, target, newValues)
 }

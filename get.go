@@ -11,8 +11,6 @@ func Get(target interface{}, id interface{}) (error) {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-	
 	return GetWithDB(db, target, id)
 }
 

@@ -16,7 +16,6 @@ func Create(i interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 	
 	return CreateWithDB(db, i)
 }
