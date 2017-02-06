@@ -28,6 +28,11 @@ func Configure(dialectx, connection string) {
     dialect = dialectx
 	connectionString = connection
 	isConfigured = true
+	
+	if instance != nil {
+	    instance.Close()
+	    instance = nil
+	}
 }
 
 func Open() (*sqlx.DB, error) {
