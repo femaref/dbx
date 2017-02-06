@@ -1,35 +1,34 @@
 package dbx
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"strings"
-	"database/sql/driver"
 )
 
-func Update(target interface{}, newValues interface{}) (error) {
+func Update(target interface{}, newValues interface{}) error {
 	db, err := Open()
 
 	if err != nil {
 		return err
 	}
-	
+
 	return UpdateWithDB(db, target, newValues)
 }
 
-func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) (error) {
-    assertPointerToStruct(target)
-    assertStruct(newValues)
-    
-    
-    t := reflect.TypeOf(target)
+func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) error {
+	assertPointerToStruct(target)
+	assertStruct(newValues)
+
+	t := reflect.TypeOf(target)
 	valTarget := reflect.ValueOf(target)
-	
+
 	t = t.Elem()
 	valTarget = valTarget.Elem()
-	
+
 	valNew := reflect.ValueOf(newValues)
-	
+
 	table_name := tableName(target, t)
 	var columns []string
 	var fields []interface{}
@@ -42,7 +41,7 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) (error
 		column_name := columnName(f)
 		mods := settings(f)
 		if mods["ignore"] {
-		    continue
+			continue
 		}
 		isNullValue := reflect.DeepEqual(valNewField.Interface(), reflect.Zero(f.Type).Interface())
 		isConvertibleToByteSlice := f.Type.ConvertibleTo(byteSlice)
@@ -52,55 +51,55 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) (error
 			id_val = valTargetField
 			continue
 		}
-		
+
 		if implementsValuer {
-		    valuer := valNewField.Interface().(driver.Valuer)
-		    if x, _ := valuer.Value(); x == nil {
-		        continue
-		    }
+			valuer := valNewField.Interface().(driver.Valuer)
+			if x, _ := valuer.Value(); x == nil {
+				continue
+			}
 		}
-		
+
 		if isNullValue {
-		    continue
+			continue
 		}
-		
+
 		columns = append(columns, column_name)
-		
+
 		if isConvertibleToByteSlice {
-		    v := valNewField.Convert(reflect.TypeOf(""))
-		    fields = append(fields, v.Interface())
-		    continue
+			v := valNewField.Convert(reflect.TypeOf(""))
+			fields = append(fields, v.Interface())
+			continue
 		}
 
 		fields = append(fields, valNewField.Interface())
 	}
-	
+
 	if !id_val.IsValid() {
-	    panic("Could not find id column in struct")
+		panic("Could not find id column in struct")
 	}
-	
+
 	placeholders := generatePlaceholders(len(columns), 1)
 	fields = append([]interface{}{id_val.Interface()}, fields...)
-	
+
 	var field_updaters []string
-	
+
 	for idx, column_name := range columns {
-	    single := fmt.Sprintf("%s = %s", QuoteIdentifier(column_name), placeholders[idx])
-	    field_updaters = append(field_updaters, single)
+		single := fmt.Sprintf("%s = %s", QuoteIdentifier(column_name), placeholders[idx])
+		field_updaters = append(field_updaters, single)
 	}
-	
+
 	qs := fmt.Sprintf(updateString, QuoteIdentifier(table_name), strings.Join(field_updaters, ", "))
 	stmt, err := db.Prepare(qs)
 
 	if err != nil {
-		return  err
+		return err
 	}
-	
-	_, err =  stmt.Exec(fields...)	
-	
+
+	_, err = stmt.Exec(fields...)
+
 	if err != nil {
-	    return err
+		return err
 	}
-	
+
 	return nil
 }
