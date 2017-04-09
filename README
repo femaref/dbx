@@ -22,3 +22,5 @@ Example for current methods:
     dbx.Create(&model)
     db.Get(&model, id)
     db.Select(&[]model, condition)
+    
+They all use the Tabler interface, so if the name of the table is not the plural of the struct name, fullfil the interface.
