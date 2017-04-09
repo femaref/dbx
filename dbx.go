@@ -65,10 +65,6 @@ func MustConnect() *sqlx.DB {
 	return sqlx.MustConnect(dialect, connectionString)
 }
 
-type Tabler interface {
-	TableName() string
-}
-
 func tableName(i interface{}, t reflect.Type) string {
 	if tabler, ok := i.(Tabler); ok {
 		return tabler.TableName()

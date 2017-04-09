@@ -20,3 +20,7 @@ type DBAccess interface {
 	Prepare(query string) (*sql.Stmt, error)
 	Preparex(query string) (*sqlx.Stmt, error)
 }
+
+type Tabler interface {
+	TableName() string
+}
