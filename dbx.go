@@ -116,6 +116,7 @@ func generatePlaceholders(n int, offset int) []string {
 
 var selectString = `SELECT * FROM %s WHERE "id" = $1`
 var updateString = `UPDATE %s SET %s WHERE "id" = $1`
+var deleteString = `DELETE FROM %s WHERE "id" = $1`
 
 var byteSlice reflect.Type = reflect.SliceOf(reflect.TypeOf(byte(0)))
 var valuer reflect.Type = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
@@ -177,4 +178,22 @@ func assertStruct(i interface{}) bool {
 	}
 
 	return true
+}
+
+func getID(i interface{}) interface{} {
+    assertPointerToStruct(i)
+    
+    t := reflect.TypeOf(i)
+	t = t.Elem()
+	
+	v := reflect.ValueOf(i)
+	v = v.Elem()
+	
+	id_field := v.FieldByName("ID")
+	
+	if id_field == reflect.ValueOf(nil) {
+	    panic(`Expected to find field "ID"`)
+	}
+	
+	return id_field.Interface()
 }
