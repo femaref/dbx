@@ -4,7 +4,7 @@ import (
     "github.com/lib/pq"
 )
 
-func IgnoreErrors(names []string) func(error) error {
+func IgnoreErrors(names ...string) func(error) error {
     lookup := map[string]bool{}
 
     for _, name := range names {
@@ -22,3 +22,5 @@ func IgnoreErrors(names []string) func(error) error {
         return err
     }
 }
+
+var SkipUniqueConstraint = IgnoreErrors("unique_violation")
