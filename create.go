@@ -10,17 +10,17 @@ import (
 var insertString = `INSERT INTO %s (%s) VALUES (%s)`
 var insertStringWithID = `INSERT INTO %s (%s) VALUES (%s) RETURNING "id"`
 
-func Create(i interface{}) (interface{}, error) {
+func Create(i interface{}) (error) {
 	db, err := Open()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	return CreateWithDB(db, i)
 }
 
-func CreateWithDB(db DBAccess, i interface{}) (interface{}, error) {
+func CreateWithDB(db DBAccess, i interface{}) (error) {
 	assertPointerToStruct(i)
 
 	t := reflect.TypeOf(i)
@@ -83,22 +83,22 @@ func CreateWithDB(db DBAccess, i interface{}) (interface{}, error) {
 	stmt, err := db.Preparex(prepared)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var v interface{}
 	if id_val.IsValid() {
 		err = stmt.QueryRow(fields...).Scan(&v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		id_val.Set(reflect.ValueOf(v))
 	} else {
 		_, err = stmt.Exec(fields...)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return v, nil
+	return nil
 }
