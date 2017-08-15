@@ -50,6 +50,16 @@ func CreateWithDB(db DBAccess, i interface{}) (error) {
 			id_val = val.Field(i)
 			continue
 		}
+
+		/*
+			is null, nullable, wants null -> skipIfNull == true
+			is null, nullable, wants default -> skipIfNull == false
+			is null, expects non null -> db exception
+		*/
+		if isNullValue && mods["skipIfNull"] {
+			continue
+		}
+
 		if implementsValuer {
 			valuer := valField.Interface().(driver.Valuer)
 			x, _ := valuer.Value()
