@@ -46,7 +46,9 @@ func (j JSONText) Value() (driver.Value, error) {
 func (j *JSONText) Scan(src interface{}) error {
     // if the db value is nil, create a json null
     if src == nil {
-        *j = JSONText(append((*j)[0:0], "null"...))
+
+        *j = make(JSONText, 4)
+        *j = []byte("null")
         return nil
     }
 	var source []byte
@@ -58,7 +60,8 @@ func (j *JSONText) Scan(src interface{}) error {
 	default:
 		return errors.New("Incompatible type for JSONText")
 	}
-	*j = JSONText(append((*j)[0:0], source...))
+	*j = make(JSONText, len(source))
+	copy(*j, source)
 	return nil
 }
 
