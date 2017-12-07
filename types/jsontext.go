@@ -6,7 +6,6 @@ import (
 	"errors"
 )
 
-
 // from https://github.com/jmoiron/sqlx/blob/master/types/types.go
 // to adapt for certain cases
 
@@ -18,6 +17,9 @@ type JSONText json.RawMessage
 
 // MarshalJSON returns j as the JSON encoding of j.
 func (j JSONText) MarshalJSON() ([]byte, error) {
+	if len(j) == 0 {
+		return JSONText("null"), nil
+	}
 	return j, nil
 }
 
@@ -44,13 +46,13 @@ func (j JSONText) Value() (driver.Value, error) {
 
 // Scan stores the src in *j.  No validation is done.
 func (j *JSONText) Scan(src interface{}) error {
-    // if the db value is nil, create a json null
-    if src == nil {
+	// if the db value is nil, create a json null
+	if src == nil {
 
-        *j = make(JSONText, 4)
-        *j = []byte("null")
-        return nil
-    }
+		*j = make(JSONText, 4)
+		*j = []byte("null")
+		return nil
+	}
 	var source []byte
 	switch src.(type) {
 	case string:
