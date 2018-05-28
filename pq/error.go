@@ -1,26 +1,40 @@
 package pq
 
 import (
-    "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 func IgnoreErrors(names ...string) func(error) error {
-    lookup := map[string]bool{}
+	fn := CheckErrors(names...)
+	return func(err error) error {
+		if fn(err) {
+			return nil
+		}
+		return err
+	}
+}
 
-    for _, name := range names {
-        lookup[name] = true
-    }
+func CheckErrors(names ...string) func(error) bool {
+	lookup := map[string]bool{}
 
-    return func (err error) error {
-        pq_err, ok := err.(*pq.Error)
+	for _, name := range names {
+		lookup[name] = true
+	}
 
-        if ok {
-            if _, ok := lookup[pq_err.Code.Name()]; ok {
-                err = nil
-            }
-        }
-        return err
-    }
+	return func(err error) bool {
+		if err == nil {
+			return false
+		}
+		pq_err, ok := err.(*pq.Error)
+
+		if ok {
+			if ok := lookup[pq_err.Code.Name()]; ok {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 var SkipUniqueConstraint = IgnoreErrors("unique_violation")
+var CheckUniqueConstraint = CheckErrors("unique_violation")
