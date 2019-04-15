@@ -1,8 +1,8 @@
 package dbx
 
 import (
-"fmt"
-"reflect"
+	"fmt"
+	"reflect"
 )
 
 func Delete(target interface{}) error {
@@ -19,13 +19,14 @@ func DeleteWithDB(db DBAccess, target interface{}) error {
 
 	t := reflect.TypeOf(target)
 	t = t.Elem()
-	
+
 	id := getID(target)
 	assertLiteral(id)
 
 	stmt, _ := db.Preparex(fmt.Sprintf(deleteString, QuoteIdentifier(tableName(target, t))))
+	defer stmt.Close()
 
 	_, err := stmt.Exec(target, id)
-	
+
 	return err
 }

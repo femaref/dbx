@@ -95,6 +95,8 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) error 
 		return err
 	}
 
+	defer stmt.Close()
+
 	_, err = stmt.Exec(fields...)
 
 	if err != nil {

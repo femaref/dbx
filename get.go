@@ -22,6 +22,7 @@ func GetWithDB(db DBAccess, target interface{}, id interface{}) error {
 	t = t.Elem()
 
 	stmt, _ := db.Preparex(fmt.Sprintf(selectString, QuoteIdentifier(tableName(target, t))))
+	defer stmt.Close()
 
 	return stmt.Get(target, id)
 }
