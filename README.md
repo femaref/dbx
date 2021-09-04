@@ -5,21 +5,13 @@ Dependencies:
 Example for connection:
 
 	connString := fmt.Sprintf("user=%s dbname=%s sslmode=disable password=%s", config.Config.Postgres.Username, config.Config.Postgres.Database, config.Config.Postgres.Password)
-	dbx.Configure("postgres", connString)
-	dbx.QuoteIdentifier = pq.QuoteIdentifier
 	db := dbx.MustConnect()
-	db.Close()
+	db.QuoteIdentifier = pq.QuoteIdentifier
 
-
-Now use
-
-    db, err := dbx.Open()
-    
-Do not close the db after you are done, it's a connection pool, so closing and reusing is taken care of.
 
 Example for current methods:
 
-    dbx.Create(&model)
+    db.Create(&model)
     db.Get(&model, id)
     db.Select(&[]model, condition)
     

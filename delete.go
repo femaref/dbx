@@ -5,16 +5,7 @@ import (
 	"reflect"
 )
 
-func Delete(target interface{}) error {
-	db, err := Open()
-
-	if err != nil {
-		return err
-	}
-	return DeleteWithDB(db, target)
-}
-
-func DeleteWithDB(db DBAccess, target interface{}) error {
+func (db *DB) DeleteWithDB(target interface{}) error {
 	assertPointerToStruct(target)
 
 	t := reflect.TypeOf(target)
@@ -23,7 +14,7 @@ func DeleteWithDB(db DBAccess, target interface{}) error {
 	id := getID(target)
 	assertLiteral(id)
 
-	stmt, _ := db.Preparex(fmt.Sprintf(deleteString, QuoteIdentifier(tableName(target, t))))
+	stmt, _ := db.DB.Preparex(fmt.Sprintf(deleteString, db.QuoteIdentifier(tableName(target, t))))
 	defer stmt.Close()
 
 	_, err := stmt.Exec(target, id)

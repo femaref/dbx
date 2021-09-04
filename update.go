@@ -7,17 +7,7 @@ import (
 	"strings"
 )
 
-func Update(target interface{}, newValues interface{}) error {
-	db, err := Open()
-
-	if err != nil {
-		return err
-	}
-
-	return UpdateWithDB(db, target, newValues)
-}
-
-func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) error {
+func (db *DB) UpdateWithDB(target interface{}, newValues interface{}) error {
 	assertPointerToStruct(target)
 	assertStruct(newValues)
 
@@ -84,12 +74,12 @@ func UpdateWithDB(db DBAccess, target interface{}, newValues interface{}) error 
 	var field_updaters []string
 
 	for idx, column_name := range columns {
-		single := fmt.Sprintf("%s = %s", QuoteIdentifier(column_name), placeholders[idx])
+		single := fmt.Sprintf("%s = %s", db.QuoteIdentifier(column_name), placeholders[idx])
 		field_updaters = append(field_updaters, single)
 	}
 
-	qs := fmt.Sprintf(updateString, QuoteIdentifier(table_name), strings.Join(field_updaters, ", "))
-	stmt, err := db.Prepare(qs)
+	qs := fmt.Sprintf(updateString, db.QuoteIdentifier(table_name), strings.Join(field_updaters, ", "))
+	stmt, err := db.DB.Prepare(qs)
 
 	if err != nil {
 		return err

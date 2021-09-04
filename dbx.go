@@ -2,67 +2,49 @@ package dbx
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
-	"github.com/chuckpreslar/inflect"
-	"github.com/jmoiron/sqlx"
 	"reflect"
 	"strings"
+
+	"github.com/chuckpreslar/inflect"
+	"github.com/jmoiron/sqlx"
 )
 
-var QuoteIdentifier func(string) string = func(s string) string {
+type DB struct {
+	DB                *sqlx.DB
+	QuoteIdentifierFn func(string) string
+}
+
+func (db *DB) QuoteIdentifier(s string) string {
+	if db.QuoteIdentifierFn == nil {
+		db.QuoteIdentifierFn = DefaultQuoteIdentifier
+	}
+
+	return db.QuoteIdentifierFn(s)
+}
+
+func DefaultQuoteIdentifier(s string) string {
 	return s
 }
 
-var (
-	dialect          string
-	connectionString string
-	isConfigured     bool
+func Open(dialect, connectionString string) (*DB, error) {
+	db, err := sqlx.Connect(dialect, connectionString)
 
-	NotConfiguredError error = errors.New("Database not configured")
-
-	instance *sqlx.DB
-)
-
-func Configure(dialectx, connection string) {
-	dialect = dialectx
-	connectionString = connection
-	isConfigured = true
-
-	if instance != nil {
-		instance.Close()
-		instance = nil
+	if err != nil {
+		return nil, err
 	}
+
+	return &DB{
+		DB: db,
+	}, nil
 }
 
-func Open() (*sqlx.DB, error) {
-	if !isConfigured {
-		panic(NotConfiguredError)
+func MustConnect(dialect, connectionString string) *DB {
+	db := sqlx.MustConnect(dialect, connectionString)
+
+	return &DB{
+		DB: db,
 	}
-
-	if instance != nil {
-		err := instance.Ping()
-		if err != nil && err.Error() == `sql: database is closed` {
-			instance = nil
-		}
-
-	}
-
-	if instance == nil {
-		db, err := sqlx.Connect(dialect, connectionString)
-
-		if err != nil {
-			return nil, err
-		}
-
-		instance = db
-	}
-
-	return instance, nil
-}
-
-func MustConnect() *sqlx.DB {
-	return sqlx.MustConnect(dialect, connectionString)
 }
 
 func tableName(i interface{}, t reflect.Type) string {
@@ -181,19 +163,16 @@ func assertStruct(i interface{}) bool {
 }
 
 func getID(i interface{}) interface{} {
-    assertPointerToStruct(i)
-    
-    t := reflect.TypeOf(i)
-	t = t.Elem()
-	
+	assertPointerToStruct(i)
+
 	v := reflect.ValueOf(i)
 	v = v.Elem()
-	
+
 	id_field := v.FieldByName("ID")
-	
+
 	if id_field == reflect.ValueOf(nil) {
-	    panic(`Expected to find field "ID"`)
+		panic(`Expected to find field "ID"`)
 	}
-	
+
 	return id_field.Interface()
 }

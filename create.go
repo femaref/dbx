@@ -10,17 +10,7 @@ import (
 var insertString = `INSERT INTO %s (%s) VALUES (%s)`
 var insertStringWithID = `INSERT INTO %s (%s) VALUES (%s) RETURNING "id"`
 
-func Create(i interface{}) error {
-	db, err := Open()
-
-	if err != nil {
-		return err
-	}
-
-	return CreateWithDB(db, i)
-}
-
-func CreateWithDB(db DBAccess, i interface{}) error {
+func (db *DB) CreateWithDB(i interface{}) error {
 	assertPointerToStruct(i)
 
 	t := reflect.TypeOf(i)
@@ -78,8 +68,8 @@ func CreateWithDB(db DBAccess, i interface{}) error {
 		fields = append(fields, val.Field(i).Interface())
 	}
 
-	for i, _ := range columns {
-		columns[i] = QuoteIdentifier(columns[i])
+	for i := range columns {
+		columns[i] = db.QuoteIdentifier(columns[i])
 	}
 	rendered_columns := strings.Join(columns, ", ")
 	placeholders := strings.Join(generatePlaceholders(len(columns), 0), ", ")
@@ -88,9 +78,9 @@ func CreateWithDB(db DBAccess, i interface{}) error {
 	if id_val.IsValid() {
 		insert_query = insertStringWithID
 	}
-	prepared := fmt.Sprintf(insert_query, QuoteIdentifier(table_name), rendered_columns, placeholders)
+	prepared := fmt.Sprintf(insert_query, db.QuoteIdentifier(table_name), rendered_columns, placeholders)
 
-	stmt, err := db.Preparex(prepared)
+	stmt, err := db.DB.Preparex(prepared)
 
 	if err != nil {
 		return err
